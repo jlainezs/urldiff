@@ -11,6 +11,7 @@ class PageInfo:
     digest = ""
     result = 0
     url = ""
+    message = ""
 
 
 class UrlExplorer:
@@ -25,11 +26,12 @@ class UrlExplorer:
     other_url = ""
     n = 0
 
-    def process_page(self, url):
+    def process_page(self, url, grablinks = True):
         """
         Processes the given url
 
-        :param url: string
+        :param url:       string
+        :param grablinks: boolean FALSE to disable link add to the pending links
 
         :return:    PageInfo instance
         """
@@ -40,7 +42,9 @@ class UrlExplorer:
         try:
             with urllib.request.urlopen(url) as response:
                 soup = BeautifulSoup(response, "html5lib")
-                self.grab_links(soup)
+
+                if grablinks:
+                    self.grab_links(soup)
 
                 html = response.read()
                 md5 = hashlib.md5()
@@ -110,7 +114,13 @@ class UrlExplorer:
             info = self.process_page(url)
             self.n = self.n + 1
 
-            if self.n%20 == 0:
+            other_url = url.replace(self.start_url, self.other_url)
+            other_info = self.process_page(other_url, False)
+
+            if info.title != other_info.title:
+                info.message = "Title doesn't match: found '" + other_info.title + "' instead of '" + info.title + "'"
+
+            if self.n % 20 == 0:
                 print("Urls processed: " + str(self.n))
 
             if self.n > 100:
