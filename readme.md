@@ -1,5 +1,5 @@
 # UrlDiff
-Command line tool to look for comparing two websites
+Command line tool to help comparing two websites
 
 ## Usage
 `UrlDiff <url_a> <url_b>`
