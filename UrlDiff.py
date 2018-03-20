@@ -26,8 +26,16 @@ class UrlExplorer:
     n = 0
 
     def process_page(self, url):
+        """
+        Processes the given url
+
+        :param url: string
+
+        :return:    PageInfo instance
+        """
         info = PageInfo()
         info.url = url
+        print(url)
 
         try:
             with urllib.request.urlopen(url) as response:
@@ -49,12 +57,27 @@ class UrlExplorer:
         return info
 
     def is_foreign_link(self, link):
-        if (link.find(self.start_url) == -1) and (link.find("http:") != -1):
+        """
+        Checks if the given link is foreign link
+
+        :param link: string
+
+        :return:     True if the given link doesn't belongs to the initial URL domain
+        """
+        if (link.find(self.start_url) == -1) and ((link.find("http:") != -1) or (link.find("https:") != -1)):
             return True
         else:
             return False
 
     def add_link_to_explore(self, url):
+        """
+        Adds the given URL into the urls to explore list.
+        Skips mailto:, javascript: and # urls.
+
+        :param url: url to add
+
+        :return:    void
+        """
         # skips mailto: and javascript: references
         if url.startswith("mailto:") or url.startswith("javascript:") or url.startswith("#"):
             return
@@ -65,20 +88,42 @@ class UrlExplorer:
         self.links_to_explore.append(url)
 
     def grab_links(self, soup):
+        """
+        Gets the links on the soup
+
+        :param soup: The soup the get links from
+
+        :return: void
+        """
         for link in soup.find_all('a', attrs={'href':re.compile("[a-zA-Z0-9\-\/]*")}):
             url = link.attrs["href"]
             if (not any(url in s for s in self.links_to_explore)) and not self.is_foreign_link(url):
                 self.add_link_to_explore(url)
 
     def explore(self):
+        """
+        Starts the exploration of the given URLs
+
+        :return: void
+        """
         for url in self.links_to_explore:
             info = self.process_page(url)
             self.n = self.n + 1
 
-            if self.n > 10:
+            if self.n%20 == 0:
+                print("Urls processed: " + str(self.n))
+
+            if self.n > 100:
                 break
 
+        print("Urls processed: " + str(self.n))
+
     def __init__(self, argv):
+        """
+        Constructor
+
+        :param argv: Command line arguments
+        """
         if len(argv) < 2:
             print("Usage: UrlDiff <url-a> <url-b>")
             exit(1)
@@ -90,7 +135,7 @@ class UrlExplorer:
         self.explore()
 
         for info in self.links_visited:
-            print(info.url + "\t\t\t\t" + str(info.result) + "\n")
+            print(info.url + "\t" + str(info.result))
 
 
 # -------------------------------------- ENTRY POINT ------------------------------------------------------------------
